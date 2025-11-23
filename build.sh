@@ -2,14 +2,17 @@
 # exit on error
 set -o errexit
 
-# Instalar dependencias
+echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
-# Recopilar archivos estáticos
-python manage.py collectstatic --no-input
+echo "🗄️  Running database migrations..."
+python manage.py makemigrations --noinput
+python manage.py migrate --noinput
 
-# Ejecutar migraciones
-python manage.py migrate
+echo "📁 Collecting static files..."
+python manage.py collectstatic --no-input --clear
 
-# Crear superusuario automáticamente
+echo "👤 Creating superuser..."
 python create_superuser.py
+
+echo "✅ Build completed successfully!"
