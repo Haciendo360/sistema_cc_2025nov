@@ -1,18 +1,33 @@
 #!/usr/bin/env bash
-# exit on error
+# Build script para Render.com
+# Exit on error
 set -o errexit
 
-echo "📦 Installing dependencies..."
+echo "🚀 Iniciando build para Render..."
+echo "=================================="
+
+echo ""
+echo "📦 Paso 1: Instalando dependencias de Python..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
-echo "🗄️  Running database migrations..."
-python manage.py makemigrations --noinput
+echo ""
+echo "🗄️  Paso 2: Ejecutando migraciones de base de datos..."
+echo "Verificando migraciones pendientes..."
+python manage.py showmigrations
+echo ""
+echo "Aplicando migraciones..."
 python manage.py migrate --noinput
 
-echo "📁 Collecting static files..."
+echo ""
+echo "📁 Paso 3: Recolectando archivos estáticos..."
 python manage.py collectstatic --no-input --clear
+echo "✅ Archivos estáticos recolectados exitosamente"
 
-echo "👤 Creating superuser..."
+echo ""
+echo "👤 Paso 4: Creando superusuario..."
 python create_superuser.py
 
-echo "✅ Build completed successfully!"
+echo ""
+echo "✅ Build completado exitosamente!"
+echo "=================================="

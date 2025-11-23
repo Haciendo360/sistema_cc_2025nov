@@ -14,6 +14,7 @@ del sistema de gestión de casos comunitarios, incluyendo:
 import os
 from pathlib import Path
 from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-0^%sqcg8+niqm5m40$e=-n##-o8qj*4ja5h*vmn7al_hpe(eym')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default='True') == 'True'
 
 # Configuración de hosts permitidos para producción
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
@@ -100,7 +101,6 @@ DATABASES = {
 
 # Configuración para producción con PostgreSQL (Render.com)
 if config('DATABASE_URL', default=''):
-    import dj_database_url
     DATABASES['default'] = dj_database_url.parse(config('DATABASE_URL'))
 
 
