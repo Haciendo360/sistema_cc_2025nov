@@ -201,21 +201,21 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-        },
-        'file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'sistema_casos.log',
         },
     },
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
         'casos': {
-            'handlers': ['console'] if not DEBUG else ['file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'usuarios': {
-            'handlers': ['console'] if not DEBUG else ['file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
