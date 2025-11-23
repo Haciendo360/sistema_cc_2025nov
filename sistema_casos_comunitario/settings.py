@@ -145,19 +145,16 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Configuración de archivos estáticos con WhiteNoise para producción
-# Usar CompressedManifestStaticFilesStorage con manifest_strict=False
-# para evitar errores cuando faltan archivos en el manifest
+# Usar CompressedStaticFilesStorage (sin manifest) para evitar errores
+# con archivos del admin de Django que no se encuentran en el manifest
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
-
-# Configuración adicional para WhiteNoise
-WHITENOISE_MANIFEST_STRICT = False  # No fallar si faltan archivos en el manifest
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
