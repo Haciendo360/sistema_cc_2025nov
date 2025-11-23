@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel del Juez - Sistema de Casos Comunitarios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-house"></i>
+        Panel del Juez de Paz
+    </h2>
+    <div>
+        <a href="{% url 'casos:crear_caso' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Nuevo Caso
+        </a>
+    </div>
+</div>
+
+<!-- Métricas principales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ total_casos }}</div>
+                <div class="stat-label">Total de Casos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ casos_en_tramite }}</div>
+                <div class="stat-label">En Trámite</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="background: linear-gradient(135deg, #17a2b8, #6f42c1);">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ casos_resueltos }}</div>
+                <div class="stat-label">Resueltos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="background: linear-gradient(135deg, #6c757d, #495057);">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ casos_cerrados }}</div>
+                <div class="stat-label">Cerrados</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas importantes -->
+{% if casos_urgentes or casos_vencidos %}
+<div class="row mb-4">
+    {% if casos_urgentes %}
+    <div class="col-md-6">
+        <div class="alert alert-urgente">
+            <h6 class="alert-heading">
+                <i class="bi bi-exclamation-triangle"></i>
+                Casos Urgentes ({{ casos_urgentes|length }})
+            </h6>
+            <p class="mb-2">Los siguientes casos están próximos a vencer:</p>
+            <ul class="mb-0">
+                {% for caso in casos_urgentes %}
+                <li>
+                    <a href="{% url 'casos:detalle_caso' caso.id %}" class="text-decoration-none">
+                        {{ caso.numero_caso }} - {{ caso.nombre_solicitante }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if casos_vencidos %}
+    <div class="col-md-6">
+        <div class="alert alert-vencido">
+            <h6 class="alert-heading">
+                <i class="bi bi-x-circle"></i>
+                Casos Vencidos ({{ casos_vencidos|length }})
+            </h6>
+            <p class="mb-2">Los siguientes casos han vencido:</p>
+            <ul class="mb-0">
+                {% for caso in casos_vencidos %}
+                <li>
+                    <a href="{% url 'casos:detalle_caso' caso.id %}" class="text-decoration-none">
+                        {{ caso.numero_caso }} - {{ caso.nombre_solicitante }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Casos recientes -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i>
+                    Casos Recientes
+                </h5>
+                <a href="{% url 'casos:listado_casos' %}" class="btn btn-outline-primary btn-sm">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if casos_recientes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Solicitante</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Progreso</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for caso in casos_recientes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ caso.numero_caso }}</strong>
+                                </td>
+                                <td>{{ caso.nombre_solicitante }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ caso.get_tipo_conflicto_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if caso.estado == 'en_tramite' %}
+                                        <span class="badge bg-warning">En Trámite</span>
+                                    {% elif caso.estado == 'resuelto' %}
+                                        <span class="badge bg-success">Resuelto</span>
+                                    {% elif caso.estado == 'cerrado' %}
+                                        <span class="badge bg-dark">Cerrado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if caso.estado == 'en_tramite' %}
+                                        {% with progreso=caso.calcular_progreso estado_urgente=caso.obtener_estado_urgente %}
+                                        <div class="progress" style="width: 100px;">
+                                            <div class="progress-bar 
+                                                {% if estado_urgente == 'urgente' %}progress-bar-urgente
+                                                {% elif estado_urgente == 'vencido' %}progress-bar-vencido
+                                                {% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ progreso }}%"
+                                                data-caso-id="{{ caso.id }}"
+                                                data-progreso="{{ progreso }}"
+                                                data-estado-urgente="{{ estado_urgente }}">
+                                                {{ progreso|floatformat:0 }}%
+                                            </div>
+                                        </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="text-success">
+                                            <i class="bi bi-check-circle"></i> Completado
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ caso.fecha_registro|date:"d/m/Y" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'casos:detalle_caso' caso.id %}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if caso.estado == 'en_tramite' %}
+                                        <a href="{% url 'casos:editar_caso' caso.id %}" 
+                                           class="btn btn-outline-secondary" 
+                                           title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay casos registrados</h5>
+                    <p class="text-muted">Comience creando su primer caso comunitario.</p>
+                    <a href="{% url 'casos:crear_caso' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Crear Primer Caso
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones rápidas -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-plus-circle display-4 text-primary"></i>
+                <h5 class="mt-3">Nuevo Caso</h5>
+                <p class="text-muted">Registre un nuevo caso comunitario</p>
+                <a href="{% url 'casos:crear_caso' %}" class="btn btn-primary">
+                    Crear Caso
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-ul display-4 text-success"></i>
+                <h5 class="mt-3">Mis Casos</h5>
+                <p class="text-muted">Vea todos sus casos asignados</p>
+                <a href="{% url 'casos:listado_casos' %}" class="btn btn-success">
+                    Ver Casos
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-person display-4 text-info"></i>
+                <h5 class="mt-3">Mi Perfil</h5>
+                <p class="text-muted">Actualice su información personal</p>
+                <a href="{% url 'usuarios:perfil' %}" class="btn btn-info">
+                    Ver Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

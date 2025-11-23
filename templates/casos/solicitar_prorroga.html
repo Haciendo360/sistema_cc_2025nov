@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solicitar Prórroga - {{ caso.numero_caso }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-clock text-warning"></i> Solicitar Prórroga
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Detalle
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Información del Caso -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información del Caso</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Número:</strong></td>
+                                    <td>{{ caso.numero_caso }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Solicitante:</strong></td>
+                                    <td>{{ caso.nombre_solicitante }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo de Conflicto:</strong></td>
+                                    <td>{{ caso.get_tipo_conflicto_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge badge-info">{{ caso.get_estado_display }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Fechas Importantes</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Fecha de Registro:</strong></td>
+                                    <td>{{ caso.fecha_registro|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha Límite:</strong></td>
+                                    <td>
+                                        <span class="{% if caso.obtener_estado_urgente == 'vencido' %}text-danger{% elif caso.obtener_estado_urgente == 'urgente' %}text-warning{% endif %}">
+                                            {{ caso.fecha_limite|date:"d/m/Y" }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Días Restantes:</strong></td>
+                                    <td>
+                                        {% with dias_restantes=caso.fecha_limite|timeuntil %}
+                                            {% if caso.obtener_estado_urgente == 'vencido' %}
+                                                <span class="text-danger">Vencido</span>
+                                            {% elif caso.obtener_estado_urgente == 'urgente' %}
+                                                <span class="text-warning">{{ dias_restantes }}</span>
+                                            {% else %}
+                                                <span class="text-success">{{ dias_restantes }}</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Información sobre Prórroga -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Información sobre Prórroga</h5>
+                        <ul class="mb-0">
+                            <li><strong>Duración:</strong> 15 días adicionales</li>
+                            <li><strong>Disponibilidad:</strong> Solo una prórroga por caso</li>
+                            <li><strong>Condición:</strong> El caso debe estar en estado "En Trámite"</li>
+                            <li><strong>Justificación:</strong> Es obligatorio explicar el motivo</li>
+                        </ul>
+                    </div>
+
+                    <!-- Formulario de Prórroga -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="justificacion" class="form-label">
+                                <strong>Justificación de la Prórroga</strong> <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="justificacion" id="justificacion" class="form-control" rows="6" 
+                                      placeholder="Explique detalladamente por qué necesita una prórroga para este caso..." required></textarea>
+                            <small class="form-text text-muted">
+                                Mínimo 20 caracteres. Sea específico sobre las razones que requieren tiempo adicional.
+                            </small>
+                        </div>
+
+                        <div class="form-actions">
+                            <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-clock"></i> Solicitar Prórroga
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Caso - {{ caso.numero_caso }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit"></i> Editar Caso: {{ caso.numero_caso }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Detalle
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Mostrar errores generales del formulario -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Errores en el formulario:</h6>
+                        <ul class="mb-0">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field|title }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+                    
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Información del Solicitante -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-user"></i> Información del Solicitante
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.cedula_solicitante.id_for_label }}" class="form-label">
+                                        {{ form.cedula_solicitante.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.cedula_solicitante }}
+                                    {% if form.cedula_solicitante.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.cedula_solicitante.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.nombre_solicitante.id_for_label }}" class="form-label">
+                                        {{ form.nombre_solicitante.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.nombre_solicitante }}
+                                    {% if form.nombre_solicitante.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.nombre_solicitante.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.telefono_solicitante.id_for_label }}" class="form-label">
+                                        {{ form.telefono_solicitante.label }}
+                                    </label>
+                                    {{ form.telefono_solicitante }}
+                                    {% if form.telefono_solicitante.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.telefono_solicitante.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.direccion_solicitante.id_for_label }}" class="form-label">
+                                        {{ form.direccion_solicitante.label }}
+                                    </label>
+                                    {{ form.direccion_solicitante }}
+                                    {% if form.direccion_solicitante.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.direccion_solicitante.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Involucrado -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-user-friends"></i> Información del Involucrado
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.cedula_involucrado.id_for_label }}" class="form-label">
+                                        {{ form.cedula_involucrado.label }}
+                                    </label>
+                                    {{ form.cedula_involucrado }}
+                                    {% if form.cedula_involucrado.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.cedula_involucrado.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.nombre_involucrado.id_for_label }}" class="form-label">
+                                        {{ form.nombre_involucrado.label }}
+                                    </label>
+                                    {{ form.nombre_involucrado }}
+                                    {% if form.nombre_involucrado.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.nombre_involucrado.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.telefono_involucrado.id_for_label }}" class="form-label">
+                                        {{ form.telefono_involucrado.label }}
+                                    </label>
+                                    {{ form.telefono_involucrado }}
+                                    {% if form.telefono_involucrado.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.telefono_involucrado.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.direccion_involucrado.id_for_label }}" class="form-label">
+                                        {{ form.direccion_involucrado.label }}
+                                    </label>
+                                    {{ form.direccion_involucrado }}
+                                    {% if form.direccion_involucrado.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.direccion_involucrado.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalles del Caso -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-info-circle"></i> Detalles del Caso
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.tipo_conflicto.id_for_label }}" class="form-label">
+                                        {{ form.tipo_conflicto.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.tipo_conflicto }}
+                                    {% if form.tipo_conflicto.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.tipo_conflicto.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.bloque_residencial.id_for_label }}" class="form-label">
+                                        {{ form.bloque_residencial.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.bloque_residencial }}
+                                    {% if form.bloque_residencial.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.bloque_residencial.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.descripcion_caso.id_for_label }}" class="form-label">
+                                        {{ form.descripcion_caso.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.descripcion_caso }}
+                                    {% if form.descripcion_caso.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.descripcion_caso.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> Actualizar Caso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

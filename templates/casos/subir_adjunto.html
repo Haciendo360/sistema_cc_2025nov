@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subir Archivo - {{ caso.numero_caso }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-upload"></i> Subir Archivo Adjunto
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'casos:gestion_adjuntos' caso.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a Archivos
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Información del Caso -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información del Caso</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Número:</strong></td>
+                                    <td>{{ caso.numero_caso }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Solicitante:</strong></td>
+                                    <td>{{ caso.nombre_solicitante }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo de Conflicto:</strong></td>
+                                    <td>{{ caso.get_tipo_conflicto_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge badge-info">{{ caso.get_estado_display }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Requisitos de Archivo</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> Tipos permitidos: PDF, DOC, DOCX, JPG, PNG</li>
+                                <li><i class="fas fa-check text-success"></i> Tamaño máximo: 10MB</li>
+                                <li><i class="fas fa-check text-success"></i> Nombre descriptivo requerido</li>
+                                <li><i class="fas fa-check text-success"></i> Descripción recomendada</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Subida -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.nombre_archivo.id_for_label }}" class="form-label">
+                                <strong>{{ form.nombre_archivo.label }}</strong> <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nombre_archivo }}
+                            {% if form.nombre_archivo.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.nombre_archivo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.archivo.id_for_label }}" class="form-label">
+                                <strong>{{ form.archivo.label }}</strong> <span class="text-danger">*</span>
+                            </label>
+                            {{ form.archivo }}
+                            {% if form.archivo.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.archivo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.tipo_archivo.id_for_label }}" class="form-label">
+                                <strong>{{ form.tipo_archivo.label }}</strong>
+                            </label>
+                            {{ form.tipo_archivo }}
+                            {% if form.tipo_archivo.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.tipo_archivo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                                <strong>{{ form.descripcion.label }}</strong>
+                            </label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.descripcion.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                {{ form.es_publico }}
+                                <label class="form-check-label" for="{{ form.es_publico.id_for_label }}">
+                                    <strong>{{ form.es_publico.label }}</strong>
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Los archivos públicos pueden ser vistos por todas las partes involucradas.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <a href="{% url 'casos:gestion_adjuntos' caso.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Subir Archivo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

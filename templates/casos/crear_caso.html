@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Nuevo Caso - Sistema de Casos Comunitarios{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-plus-circle"></i>
+                    Crear Nuevo Caso Comunitario
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Información del Solicitante -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-person"></i>
+                                Información del Solicitante
+                            </h5>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.cedula_solicitante.id_for_label }}" class="form-label">
+                                    {{ form.cedula_solicitante.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.cedula_solicitante }}
+                                {% if form.cedula_solicitante.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.cedula_solicitante.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Ingrese exactamente 10 dígitos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.nombre_solicitante.id_for_label }}" class="form-label">
+                                    {{ form.nombre_solicitante.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombre_solicitante }}
+                                {% if form.nombre_solicitante.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.nombre_solicitante.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.telefono_solicitante.id_for_label }}" class="form-label">
+                                    {{ form.telefono_solicitante.label }}
+                                </label>
+                                {{ form.telefono_solicitante }}
+                                {% if form.telefono_solicitante.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.telefono_solicitante.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.direccion_solicitante.id_for_label }}" class="form-label">
+                                    {{ form.direccion_solicitante.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.direccion_solicitante }}
+                                {% if form.direccion_solicitante.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.direccion_solicitante.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información del Involucrado -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-person-badge"></i>
+                                Información del Involucrado
+                            </h5>
+                            <p class="text-muted small">
+                                Complete esta información si hay una persona específica involucrada en el conflicto.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.cedula_involucrado.id_for_label }}" class="form-label">
+                                    {{ form.cedula_involucrado.label }}
+                                </label>
+                                {{ form.cedula_involucrado }}
+                                {% if form.cedula_involucrado.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.cedula_involucrado.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.nombre_involucrado.id_for_label }}" class="form-label">
+                                    {{ form.nombre_involucrado.label }}
+                                </label>
+                                {{ form.nombre_involucrado }}
+                                {% if form.nombre_involucrado.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.nombre_involucrado.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.telefono_involucrado.id_for_label }}" class="form-label">
+                                    {{ form.telefono_involucrado.label }}
+                                </label>
+                                {{ form.telefono_involucrado }}
+                                {% if form.telefono_involucrado.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.telefono_involucrado.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.direccion_involucrado.id_for_label }}" class="form-label">
+                                    {{ form.direccion_involucrado.label }}
+                                </label>
+                                {{ form.direccion_involucrado }}
+                                {% if form.direccion_involucrado.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.direccion_involucrado.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información del Caso -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-file-text"></i>
+                                Información del Caso
+                            </h5>
+                        </div>
+                    </div>
+                    
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.tipo_conflicto.id_for_label }}" class="form-label">
+                                        {{ form.tipo_conflicto.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.tipo_conflicto }}
+                                    {% if form.tipo_conflicto.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.tipo_conflicto.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.bloque_residencial.id_for_label }}" class="form-label">
+                                        {{ form.bloque_residencial.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.bloque_residencial }}
+                                    {% if form.bloque_residencial.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.bloque_residencial.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.fecha_registro.id_for_label }}" class="form-label">
+                                        {{ form.fecha_registro.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.fecha_registro }}
+                                    {% if form.fecha_registro.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.fecha_registro.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Fecha en que se registró el caso</div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.descripcion_caso.id_for_label }}" class="form-label">
+                            {{ form.descripcion_caso.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.descripcion_caso }}
+                        {% if form.descripcion_caso.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.descripcion_caso.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Describa detalladamente el conflicto presentado, incluyendo fechas, 
+                            circunstancias y cualquier información relevante.
+                        </div>
+                    </div>
+                    
+                    <!-- Información importante -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle"></i>
+                            Información Importante
+                        </h6>
+                        <ul class="mb-0">
+                            <li>El número de caso se generará automáticamente</li>
+                            <li>El plazo para resolver el caso es de <strong>15 días</strong></li>
+                            <li>Se puede solicitar una prórroga de <strong>15 días adicionales</strong></li>
+                            <li>Todos los campos marcados con <span class="text-danger">*</span> son obligatorios</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'casos:panel_juez' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            Crear Caso
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

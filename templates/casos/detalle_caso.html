@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ caso.numero_caso }} - Detalle del Caso{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-file-text"></i>
+        {{ caso.numero_caso }}
+    </h2>
+    <div>
+        {% if caso.juez_asignado == user %}
+        <a href="{% url 'casos:editar_caso' caso.id %}" class="btn btn-primary me-2">
+            <i class="bi bi-pencil-square"></i>
+            Actualizar Caso
+        </a>
+        {% endif %}
+        <a href="{% url 'casos:listado_casos' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+        </a>
+    </div>
+</div>
+
+<!-- Información general del caso -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Información General
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Número de Caso:</strong></td>
+                                <td>{{ caso.numero_caso }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Estado:</strong></td>
+                                <td>
+                                    {% if caso.estado == 'en_tramite' %}
+                                        <span class="badge bg-warning">En Trámite</span>
+                                    {% elif caso.estado == 'resuelto' %}
+                                        <span class="badge bg-success">Resuelto</span>
+                                    {% elif caso.estado == 'cerrado' %}
+                                        <span class="badge bg-dark">Cerrado</span>
+                                    {% elif caso.estado == 'archivado' %}
+                                        <span class="badge bg-secondary">Archivado</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tipo de Conflicto:</strong></td>
+                                <td>{{ caso.get_tipo_conflicto_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bloque Residencial:</strong></td>
+                                <td>{{ caso.get_bloque_residencial_display }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Juez Asignado:</strong></td>
+                                <td>{{ caso.juez_asignado.get_full_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fecha de Registro:</strong></td>
+                                <td>{{ caso.fecha_registro|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fecha Límite:</strong></td>
+                                <td>{{ caso.fecha_limite|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% if caso.fecha_prorroga %}
+                            <tr>
+                                <td><strong>Fecha Prórroga:</strong></td>
+                                <td>{{ caso.fecha_prorroga|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6><strong>Descripción del Caso:</strong></h6>
+                    <p class="text-muted">{{ caso.descripcion_caso }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-speedometer2"></i>
+                    Progreso del Caso
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                {% if caso.estado == 'en_tramite' %}
+                    {% with progreso=caso.calcular_progreso estado_urgente=caso.obtener_estado_urgente %}
+                    <div class="mb-3">
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar 
+                                {% if estado_urgente == 'urgente' %}progress-bar-urgente
+                                {% elif estado_urgente == 'vencido' %}progress-bar-vencido
+                                {% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ progreso }}%"
+                                data-caso-id="{{ caso.id }}"
+                                data-progreso="{{ progreso }}"
+                                data-estado-urgente="{{ estado_urgente }}">
+                                {{ progreso|floatformat:0 }}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {% if estado_urgente == 'urgente' %}
+                            <div class="alert alert-urgente">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>Urgente</strong><br>
+                                <small>Próximo a vencer</small>
+                            </div>
+                        {% elif estado_urgente == 'vencido' %}
+                            <div class="alert alert-vencido">
+                                <i class="bi bi-x-circle"></i>
+                                <strong>Vencido</strong><br>
+                                <small>Ha excedido el plazo</small>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i>
+                                <strong>En Tiempo</strong><br>
+                                <small>Dentro del plazo</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if caso.puede_solicitar_prorroga %}
+                    <a href="{% url 'casos:solicitar_prorroga' caso.id %}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-clock"></i>
+                        Solicitar Prórroga
+                    </a>
+                    {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        <strong>Completado</strong><br>
+                        <small>Caso finalizado</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de las partes -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person"></i>
+                    Solicitante
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Nombre:</strong></td>
+                        <td>{{ caso.nombre_solicitante }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cédula:</strong></td>
+                        <td>{{ caso.cedula_solicitante }}</td>
+                    </tr>
+                    {% if caso.telefono_solicitante %}
+                    <tr>
+                        <td><strong>Teléfono:</strong></td>
+                        <td>{{ caso.telefono_solicitante }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>Dirección:</strong></td>
+                        <td>{{ caso.direccion_solicitante }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if caso.nombre_involucrado %}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge"></i>
+                    Involucrado
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Nombre:</strong></td>
+                        <td>{{ caso.nombre_involucrado }}</td>
+                    </tr>
+                    {% if caso.cedula_involucrado %}
+                    <tr>
+                        <td><strong>Cédula:</strong></td>
+                        <td>{{ caso.cedula_involucrado }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if caso.telefono_involucrado %}
+                    <tr>
+                        <td><strong>Teléfono:</strong></td>
+                        <td>{{ caso.telefono_involucrado }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if caso.direccion_involucrado %}
+                    <tr>
+                        <td><strong>Dirección:</strong></td>
+                        <td>{{ caso.direccion_involucrado }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Archivos adjuntos -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-paperclip"></i>
+                    Archivos Adjuntos
+                </h5>
+                {% if caso.estado == 'en_tramite' and caso.juez_asignado == user %}
+                <a href="{% url 'casos:gestion_adjuntos' caso.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i>
+                    Agregar Archivo
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if adjuntos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Tamaño</th>
+                                <th>Subido por</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for adjunto in adjuntos %}
+                            <tr>
+                                <td>{{ adjunto.nombre_archivo }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ adjunto.get_tipo_archivo_display }}
+                                    </span>
+                                </td>
+                                <td>{{ adjunto.obtener_tamaño_formateado }}</td>
+                                <td>{{ adjunto.subido_por.get_full_name }}</td>
+                                <td>{{ adjunto.fecha_subida|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'casos:descargar_adjunto' adjunto.id %}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Descargar">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        {% if adjunto.subido_por == user %}
+                                        <a href="{% url 'casos:eliminar_adjunto' adjunto.id %}" 
+                                           class="btn btn-outline-danger" 
+                                           title="Eliminar"
+                                           onclick="return confirmarAccion('¿Está seguro de eliminar este archivo?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-paperclip display-1 text-muted"></i>
+                    <h6 class="text-muted mt-3">No hay archivos adjuntos</h6>
+                    <p class="text-muted">Agregue documentos relacionados con este caso.</p>
+                    {% if caso.estado == 'en_tramite' and caso.juez_asignado == user %}
+                    <a href="{% url 'casos:gestion_adjuntos' caso.id %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Agregar Primer Archivo
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Observaciones -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-text"></i>
+                    Observaciones
+                </h5>
+                {% if caso.estado == 'en_tramite' and caso.juez_asignado == user %}
+                <a href="{% url 'casos:observaciones_caso' caso.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i>
+                    Agregar Observación
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if observaciones %}
+                <div class="timeline">
+                    {% for observacion in observaciones %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">
+                            <i class="bi bi-circle-fill"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ observacion.usuario.get_full_name }}</h6>
+                                    <small class="text-muted">{{ observacion.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                {% if observacion.es_interna %}
+                                <span class="badge bg-warning">Interna</span>
+                                {% endif %}
+                            </div>
+                            <p class="mt-2 mb-0">{{ observacion.contenido }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-chat-text display-1 text-muted"></i>
+                    <h6 class="text-muted mt-3">No hay observaciones</h6>
+                    <p class="text-muted">Agregue observaciones y notas sobre este caso.</p>
+                    {% if caso.estado == 'en_tramite' and caso.juez_asignado == user %}
+                    <a href="{% url 'casos:observaciones_caso' caso.id %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Agregar Primera Observación
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de resolución -->
+{% if caso.estado in 'resuelto,cerrado' and caso.medio_resolucion %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle"></i>
+                    Información de Resolución
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Medio de Resolución:</strong></td>
+                                <td>{{ caso.get_medio_resolucion_display }}</td>
+                            </tr>
+                            {% if caso.fecha_resolucion %}
+                            <tr>
+                                <td><strong>Fecha de Resolución:</strong></td>
+                                <td>{{ caso.fecha_resolucion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if caso.fecha_cierre %}
+                            <tr>
+                                <td><strong>Fecha de Cierre:</strong></td>
+                                <td>{{ caso.fecha_cierre|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                
+                {% if caso.observaciones_resolucion %}
+                <div class="mt-3">
+                    <h6><strong>Observaciones de Resolución:</strong></h6>
+                    <p class="text-muted">{{ caso.observaciones_resolucion }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Información de prórroga -->
+{% if caso.prorroga_solicitada %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock"></i>
+                    Información de Prórroga
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Prórroga Solicitada:</strong></td>
+                                <td>
+                                    <span class="badge bg-warning">Sí</span>
+                                </td>
+                            </tr>
+                            {% if caso.fecha_solicitud_prorroga %}
+                            <tr>
+                                <td><strong>Fecha de Solicitud:</strong></td>
+                                <td>{{ caso.fecha_solicitud_prorroga|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if caso.fecha_prorroga %}
+                            <tr>
+                                <td><strong>Nueva Fecha Límite:</strong></td>
+                                <td>{{ caso.fecha_prorroga|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                
+                {% if caso.justificacion_prorroga %}
+                <div class="mt-3">
+                    <h6><strong>Justificación de la Prórroga:</strong></h6>
+                    <p class="text-muted">{{ caso.justificacion_prorroga }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 5px;
+        color: #007bff;
+    }
+    
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 3px solid #007bff;
+    }
+</style>
+{% endblock %}

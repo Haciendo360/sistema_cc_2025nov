@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Observaciones - {{ caso.numero_caso }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-comments"></i> Observaciones del Caso: {{ caso.numero_caso }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Detalle
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Lista de Observaciones -->
+                    {% if observaciones %}
+                        {% for observacion in observaciones %}
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ observacion.usuario.get_full_name }}</strong>
+                                    <small class="text-muted">({{ observacion.usuario.username }})</small>
+                                </div>
+                                <div>
+                                    <span class="badge badge-secondary">{{ observacion.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                                    {% if observacion.es_interna %}
+                                        <span class="badge badge-warning">Interna</span>
+                                    {% else %}
+                                        <span class="badge badge-info">Pública</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">{{ observacion.contenido|linebreaks }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-comments fa-3x mb-3"></i>
+                            <h5>No hay observaciones registradas</h5>
+                            <p>Se el primero en agregar una observación para este caso.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Formulario para Agregar Observación -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-plus"></i> Agregar Observación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'casos:agregar_observacion' caso.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="contenido" class="form-label">
+                                <strong>Contenido</strong> <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="contenido" id="contenido" class="form-control" rows="4" 
+                                      placeholder="Escriba su observación aquí..." required></textarea>
+                            <small class="form-text text-muted">
+                                Mínimo 10 caracteres. Sea claro y específico.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="es_interna" name="es_interna">
+                                <label class="form-check-label" for="es_interna">
+                                    <strong>Observación Interna</strong>
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Las observaciones internas solo son visibles para el personal del sistema.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-save"></i> Agregar Observación
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Información del Caso -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle"></i> Información del Caso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Número:</strong></td>
+                            <td>{{ caso.numero_caso }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Solicitante:</strong></td>
+                            <td>{{ caso.nombre_solicitante }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estado:</strong></td>
+                            <td>
+                                <span class="badge badge-info">{{ caso.get_estado_display }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Juez Asignado:</strong></td>
+                            <td>{{ caso.juez_asignado.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha Límite:</strong></td>
+                            <td>{{ caso.fecha_limite|date:"d/m/Y" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

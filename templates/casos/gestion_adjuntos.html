@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Archivos Adjuntos - {{ caso.numero_caso }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-paperclip"></i> Archivos Adjuntos: {{ caso.numero_caso }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Detalle
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Lista de Archivos -->
+                    {% if adjuntos %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Archivo</th>
+                                        <th>Tipo</th>
+                                        <th>Tamaño</th>
+                                        <th>Subido por</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for adjunto in adjuntos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ adjunto.nombre_archivo }}</strong>
+                                            {% if adjunto.descripcion %}
+                                                <br><small class="text-muted">{{ adjunto.descripcion }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">{{ adjunto.get_tipo_archivo_display }}</span>
+                                        </td>
+                                        <td>{{ adjunto.obtener_tamaño_formateado }}</td>
+                                        <td>{{ adjunto.subido_por.get_full_name }}</td>
+                                        <td>{{ adjunto.fecha_subida|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'casos:descargar_adjunto' adjunto.id %}" 
+                                                   class="btn btn-primary btn-sm" title="Descargar">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                {% if adjunto.subido_por == user %}
+                                                    <a href="{% url 'casos:eliminar_adjunto' adjunto.id %}" 
+                                                       class="btn btn-danger btn-sm" title="Eliminar"
+                                                       onclick="return confirm('¿Está seguro de eliminar este archivo?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-paperclip fa-3x mb-3"></i>
+                            <h5>No hay archivos adjuntos</h5>
+                            <p>Suba documentos relacionados con este caso.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Formulario para Subir Archivo -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-upload"></i> Subir Archivo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" action="{% url 'casos:subir_adjunto' caso.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="nombre_archivo" class="form-label">
+                                <strong>Nombre del Archivo</strong> <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="nombre_archivo" id="nombre_archivo" class="form-control" 
+                                   placeholder="Nombre descriptivo del archivo" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="archivo" class="form-label">
+                                <strong>Archivo</strong> <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" name="archivo" id="archivo" class="form-control" 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted">
+                                Tipos permitidos: PDF, DOC, DOCX, JPG, PNG. Máximo 10MB.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="tipo_archivo" class="form-label">
+                                <strong>Tipo de Archivo</strong>
+                            </label>
+                            <select name="tipo_archivo" id="tipo_archivo" class="form-control">
+                                <option value="documento">Documento</option>
+                                <option value="evidencia">Evidencia</option>
+                                <option value="fotografia">Fotografía</option>
+                                <option value="certificado">Certificado</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="descripcion" class="form-label">
+                                <strong>Descripción</strong>
+                            </label>
+                            <textarea name="descripcion" id="descripcion" class="form-control" rows="3" 
+                                      placeholder="Descripción del contenido del archivo"></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="es_publico" name="es_publico">
+                                <label class="form-check-label" for="es_publico">
+                                    <strong>Archivo Público</strong>
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Los archivos públicos pueden ser vistos por todas las partes involucradas.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-upload"></i> Subir Archivo
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Información del Caso -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle"></i> Información del Caso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Número:</strong></td>
+                            <td>{{ caso.numero_caso }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Solicitante:</strong></td>
+                            <td>{{ caso.nombre_solicitante }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estado:</strong></td>
+                            <td>
+                                <span class="badge badge-info">{{ caso.get_estado_display }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Archivos:</strong></td>
+                            <td>{{ adjuntos|length }} archivo(s)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

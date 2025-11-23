@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestión de Casos Comunitarios - Jueces de Paz{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Estilos personalizados -->
+    <style>
+        :root {
+            --color-primario: #007bff;
+            --color-secundario: #6c757d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--color-primario) !important;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: box-shadow 0.15s ease-in-out;
+        }
+        
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primario);
+            border-color: var(--color-primario);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .alert-urgente {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .alert-vencido {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .progress-bar-urgente {
+            background-color: #ffc107;
+        }
+        
+        .progress-bar-vencido {
+            background-color: #dc3545;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #343a40;
+        }
+        
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 0.75rem 1rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: #495057;
+        }
+        
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: var(--color-primario);
+        }
+        
+        .main-content {
+            min-height: calc(100vh - 56px);
+        }
+        
+        .footer {
+            background-color: #343a40;
+            color: #adb5bd;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--color-primario), #0056b3);
+            color: white;
+        }
+        
+        .stat-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="d-flex flex-column">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'casos:panel_juez' %}">
+                <i class="bi bi-balance"></i>
+                Sistema de Casos Comunitarios
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                        {% if user.es_juez %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'casos:panel_juez' %}">
+                                    <i class="bi bi-house"></i> Panel del Juez
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'casos:listado_casos' %}">
+                                    <i class="bi bi-list-ul"></i> Mis Casos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'casos:crear_caso' %}">
+                                    <i class="bi bi-plus-circle"></i> Nuevo Caso
+                                </a>
+                            </li>
+                        {% elif user.es_admin %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'casos:panel_admin' %}">
+                                    <i class="bi bi-speedometer2"></i> Panel Admin
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'casos:listado_casos' %}">
+                                    <i class="bi bi-list-ul"></i> Todos los Casos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'usuarios:gestion_usuarios' %}">
+                                    <i class="bi bi-people"></i> Gestión de Usuarios
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i>
+                                {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}">
+                                    <i class="bi bi-person"></i> Mi Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'usuarios:cambiar_password' %}">
+                                    <i class="bi bi-key"></i> Cambiar Contraseña
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'usuarios:logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'usuarios:login' %}">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'usuarios:registro' %}">
+                                <i class="bi bi-person-plus"></i> Registrarse
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Contenido principal -->
+    <div class="container-fluid flex-grow-1">
+        <div class="row">
+            {% if user.is_authenticated %}
+                <!-- Sidebar -->
+                <div class="col-md-2 sidebar p-0">
+                    <div class="p-3">
+                        <h6 class="text-white mb-3">
+                            <i class="bi bi-person-badge"></i>
+                            {{ user.get_rol_display }}
+                        </h6>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        {% if user.es_juez %}
+                            <a class="nav-link" href="{% url 'casos:panel_juez' %}">
+                                <i class="bi bi-house"></i> Panel Principal
+                            </a>
+                            <a class="nav-link" href="{% url 'casos:listado_casos' %}">
+                                <i class="bi bi-list-ul"></i> Mis Casos
+                            </a>
+                            <a class="nav-link" href="{% url 'casos:crear_caso' %}">
+                                <i class="bi bi-plus-circle"></i> Nuevo Caso
+                            </a>
+                        {% elif user.es_admin %}
+                            <a class="nav-link" href="{% url 'casos:panel_admin' %}">
+                                <i class="bi bi-speedometer2"></i> Panel Admin
+                            </a>
+                            <a class="nav-link" href="{% url 'casos:listado_casos' %}">
+                                <i class="bi bi-list-ul"></i> Todos los Casos
+                            </a>
+                            <a class="nav-link" href="{% url 'usuarios:gestion_usuarios' %}">
+                                <i class="bi bi-people"></i> Gestión de Usuarios
+                            </a>
+                            <a class="nav-link" href="{% url 'casos:reportes' %}">
+                                <i class="bi bi-graph-up"></i> Reportes
+                            </a>
+                        {% endif %}
+                        
+                        <hr class="text-white-50">
+                        
+                        <a class="nav-link" href="{% url 'usuarios:perfil' %}">
+                            <i class="bi bi-person"></i> Mi Perfil
+                        </a>
+                        <a class="nav-link" href="{% url 'usuarios:cambiar_password' %}">
+                            <i class="bi bi-key"></i> Cambiar Contraseña
+                        </a>
+                    </nav>
+                </div>
+                
+                <!-- Contenido principal -->
+                <div class="col-md-10 main-content p-4">
+            {% else %}
+                <!-- Contenido para usuarios no autenticados -->
+                <div class="col-12 p-4">
+            {% endif %}
+                
+                <!-- Mensajes -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Contenido de la página -->
+                {% block content %}{% endblock %}
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        © 2024 Sistema de Gestión de Casos Comunitarios - Jueces de Paz
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0">
+                        Desarrollado con Django 4.2.7
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts personalizados -->
+    <script>
+        // Función para mostrar alertas de confirmación
+        function confirmarAccion(mensaje) {
+            return confirm(mensaje);
+        }
+        
+        // Función para actualizar progreso de casos
+        function actualizarProgreso() {
+            document.querySelectorAll('.progress-caso').forEach(function(barra) {
+                const casoId = barra.dataset.casoId;
+                const progreso = barra.dataset.progreso;
+                const estadoUrgente = barra.dataset.estadoUrgente;
+                
+                barra.style.width = progreso + '%';
+                barra.textContent = Math.round(progreso) + '%';
+                
+                if (estadoUrgente === 'urgente') {
+                    barra.classList.add('progress-bar-urgente');
+                } else if (estadoUrgente === 'vencido') {
+                    barra.classList.add('progress-bar-vencido');
+                }
+            });
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarProgreso();
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

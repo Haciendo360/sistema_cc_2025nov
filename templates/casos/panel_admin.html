@@ -1,0 +1,521 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Administrador - Sistema de Casos Comunitarios{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Ajustes para que el panel se vea completo en pantalla */
+    .main-content {
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding-bottom: 30px;
+    }
+
+    /* Reducir altura de gráficos en pantallas pequeñas */
+    @media (max-height: 900px) {
+        canvas {
+            max-height: 200px !important;
+        }
+    }
+
+    /* Ajustar espaciado en pantallas pequeñas */
+    @media (max-width: 768px) {
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Configuración de gráficos
+    const configCasosPorEstado = {
+        type: 'doughnut',
+        data: {
+            labels: ['En Trámite', 'Resueltos', 'No Resueltos'],
+            datasets: [{
+                data: [{{ casos_en_tramite }}, {{ casos_resueltos }}, {{ casos_no_resueltos }}],
+    backgroundColor: ['#ffc107', '#28a745', '#6c757d'],
+        borderWidth: 2,
+            borderColor: '#fff'
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: {
+                position: 'bottom',
+                },
+            title: {
+                display: true,
+                    text: 'Casos por Estado'
+            }
+        }
+    }
+    };
+
+    const configCasosPorTipo = {
+        type: 'pie',
+        data: {
+            labels: [
+                {% for tipo in casos_por_tipo %}
+                '{{ tipo.tipo_conflicto|title }}',
+                {% endfor %}
+            ],
+    datasets: [{
+        data: [
+            {% for tipo in casos_por_tipo %}
+                    {{ tipo.total }},
+    {% endfor %}
+    ],
+        backgroundColor: [
+            '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#20c997'
+        ],
+            borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: {
+                position: 'bottom',
+                },
+            title: {
+                display: true,
+                    text: 'Casos por Tipo de Conflicto'
+            }
+        }
+    }
+    };
+
+    const configCasosPorBloque = {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for bloque in casos_por_bloque %}
+                '{{ bloque.bloque_residencial|slice:"7:" }}',
+                {% endfor %}
+            ],
+    datasets: [{
+        label: 'Número de Casos',
+        data: [
+            {% for bloque in casos_por_bloque %}
+                    {{ bloque.total }},
+    {% endfor %}
+    ],
+        backgroundColor: '#007bff',
+            borderColor: '#0056b3',
+                borderWidth: 1
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            title: {
+                display: true,
+                    text: 'Casos por Bloque Residencial'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                    ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+    };
+
+    const configActividadMensual = {
+        type: 'line',
+        data: {
+            labels: [
+                {% for mes in actividad_mensual %}
+                '{{ mes.mes }}',
+                {% endfor %}
+            ],
+    datasets: [{
+        label: 'Casos Registrados',
+        data: [
+            {% for mes in actividad_mensual %}
+                    {{ mes.total }},
+    {% endfor %}
+    ],
+        borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderWidth: 3,
+                    fill: true,
+                        tension: 0.4
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            title: {
+                display: true,
+                    text: 'Actividad Mensual'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                    ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+    };
+
+    // Inicializar gráficos cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function () {
+        new Chart(document.getElementById('chartCasosPorEstado'), configCasosPorEstado);
+        new Chart(document.getElementById('chartCasosPorTipo'), configCasosPorTipo);
+        new Chart(document.getElementById('chartCasosPorBloque'), configCasosPorBloque);
+        new Chart(document.getElementById('chartActividadMensual'), configActividadMensual);
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-speedometer2"></i>
+        Panel de Administrador
+    </h2>
+    <div>
+        <a href="{% url 'usuarios:gestion_usuarios' %}" class="btn btn-warning me-2">
+            <i class="bi bi-people"></i>
+            Gestión de Usuarios
+            {% if usuarios_pendientes > 0 %}
+            <span class="badge bg-danger">{{ usuarios_pendientes }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'casos:reportes' %}" class="btn btn-info">
+            <i class="bi bi-graph-up"></i>
+            Reportes
+        </a>
+    </div>
+</div>
+
+<!-- Métricas principales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ total_casos }}</div>
+                <div class="stat-label">Total de Casos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ casos_en_tramite }}</div>
+                <div class="stat-label">En Trámite</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ casos_resueltos }}</div>
+                <div class="stat-label">Resueltos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="background: linear-gradient(135deg, #6c757d, #495057);">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ casos_no_resueltos }}</div>
+                <div class="stat-label">No Resueltos</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas importantes -->
+{% if usuarios_pendientes > 0 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h6 class="alert-heading">
+                <i class="bi bi-exclamation-triangle"></i>
+                Usuarios Pendientes de Aprobación
+            </h6>
+            <p class="mb-2">
+                Hay <strong>{{ usuarios_pendientes }}</strong> usuarios esperando aprobación.
+                <a href="{% url 'usuarios:gestion_usuarios' %}" class="alert-link">
+                    Revisar usuarios pendientes
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Gráficos estadísticos -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <canvas id="chartCasosPorEstado" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <canvas id="chartCasosPorTipo" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <canvas id="chartCasosPorBloque" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <canvas id="chartActividadMensual" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen estadístico detallado -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart"></i>
+                    Resumen por Tipo de Conflicto
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if casos_por_tipo %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Conflicto</th>
+                                <th>Cantidad</th>
+                                <th>Porcentaje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tipo in casos_por_tipo %}
+                            <tr>
+                                <td>{{ tipo.tipo_conflicto|title }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ tipo.total }}</span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="width: 100px;">
+                                        <div class="progress-bar" role="progressbar"
+                                            style="width: {% widthratio tipo.total total_casos 100 %}%">
+                                            {% widthratio tipo.total total_casos 100 %}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-geo-alt"></i>
+                    Resumen por Bloque Residencial
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if casos_por_bloque %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Bloque</th>
+                                <th>Cantidad</th>
+                                <th>Porcentaje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bloque in casos_por_bloque %}
+                            <tr>
+                                <td>{{ bloque.bloque_residencial|slice:"7:" }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ bloque.total }}</span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="width: 100px;">
+                                        <div class="progress-bar bg-info" role="progressbar"
+                                            style="width: {% widthratio bloque.total total_casos 100 %}%">
+                                            {% widthratio bloque.total total_casos 100 %}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Casos recientes -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i>
+                    Casos Recientes
+                </h5>
+                <a href="{% url 'casos:listado_casos' %}" class="btn btn-outline-primary btn-sm">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if casos_recientes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Solicitante</th>
+                                <th>Juez Asignado</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for caso in casos_recientes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ caso.numero_caso }}</strong>
+                                </td>
+                                <td>{{ caso.nombre_solicitante }}</td>
+                                <td>{{ caso.juez_asignado.get_full_name }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ caso.get_tipo_conflicto_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if caso.estado == 'en_tramite' %}
+                                    <span class="badge bg-warning">En Trámite</span>
+                                    {% elif caso.estado == 'resuelto' %}
+                                    <span class="badge bg-success">Resuelto</span>
+                                    {% elif caso.estado == 'cerrado' %}
+                                    <span class="badge bg-dark">Cerrado</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ caso.fecha_registro|date:"d/m/Y" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'casos:detalle_caso' caso.id %}" class="btn btn-outline-primary"
+                                            title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'casos:editar_caso' caso.id %}"
+                                            class="btn btn-outline-secondary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay casos registrados</h5>
+                    <p class="text-muted">El sistema está listo para recibir casos.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones rápidas -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-people display-4 text-warning"></i>
+                <h5 class="mt-3">Gestión de Usuarios</h5>
+                <p class="text-muted">Aprobar usuarios pendientes</p>
+                <a href="{% url 'usuarios:gestion_usuarios' %}" class="btn btn-warning">
+                    Gestionar Usuarios
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-ul display-4 text-primary"></i>
+                <h5 class="mt-3">Todos los Casos</h5>
+                <p class="text-muted">Ver todos los casos del sistema</p>
+                <a href="{% url 'casos:listado_casos' %}" class="btn btn-primary">
+                    Ver Casos
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up display-4 text-success"></i>
+                <h5 class="mt-3">Reportes</h5>
+                <p class="text-muted">Generar reportes estadísticos</p>
+                <a href="{% url 'casos:reportes' %}" class="btn btn-success">
+                    Ver Reportes
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-gear display-4 text-info"></i>
+                <h5 class="mt-3">Configuración</h5>
+                <p class="text-muted">Configurar el sistema</p>
+                <a href="/admin/" class="btn btn-info">
+                    Configurar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

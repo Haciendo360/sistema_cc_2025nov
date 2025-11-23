@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}Listado de Casos - Sistema de Casos Comunitarios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-list-ul"></i>
+        {% if user.es_juez %}
+            Mis Casos
+        {% else %}
+            Todos los Casos
+        {% endif %}
+    </h2>
+    {% if user.es_juez %}
+    <div>
+        <a href="{% url 'casos:crear_caso' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Nuevo Caso
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="estado" class="form-label">Estado</label>
+                <select name="estado" id="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    {% for value, label in estados %}
+                    <option value="{{ value }}" {% if estado == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="tipo_conflicto" class="form-label">Tipo de Conflicto</label>
+                <select name="tipo_conflicto" id="tipo_conflicto" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for value, label in tipos_conflicto %}
+                    <option value="{{ value }}" {% if tipo_conflicto == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="bloque" class="form-label">Bloque Residencial</label>
+                <select name="bloque" id="bloque" class="form-select">
+                    <option value="">Todos los bloques</option>
+                    {% for value, label in bloques %}
+                    <option value="{{ value }}" {% if bloque == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="busqueda" class="form-label">Búsqueda</label>
+                <div class="input-group">
+                    <input type="text" name="busqueda" id="busqueda" class="form-control" 
+                           placeholder="Número, nombre o cédula" value="{{ busqueda }}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Botón para limpiar filtros -->
+        {% if estado or tipo_conflicto or bloque or busqueda %}
+        <div class="mt-3">
+            <a href="{% url 'casos:listado_casos' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-circle"></i>
+                Limpiar Filtros
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Listado de casos -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-list-ul"></i>
+            Casos
+            {% if page_obj %}
+            <span class="badge bg-primary">{{ page_obj.paginator.count }}</span>
+            {% endif %}
+        </h5>
+        
+        {% if page_obj %}
+        <div class="text-muted small">
+            Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} casos
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="card-body">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Solicitante</th>
+                        {% if user.es_admin %}
+                        <th>Juez Asignado</th>
+                        {% endif %}
+                        <th>Tipo</th>
+                        <th>Bloque</th>
+                        <th>Estado</th>
+                        <th>Progreso</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for caso in page_obj %}
+                    <tr>
+                        <td>
+                            <strong>{{ caso.numero_caso }}</strong>
+                        </td>
+                        <td>
+                            <div>
+                                <strong>{{ caso.nombre_solicitante }}</strong>
+                                <br>
+                                <small class="text-muted">{{ caso.cedula_solicitante }}</small>
+                            </div>
+                        </td>
+                        {% if user.es_admin %}
+                        <td>{{ caso.juez_asignado.get_full_name }}</td>
+                        {% endif %}
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ caso.get_tipo_conflicto_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
+                                {{ caso.get_bloque_residencial_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if caso.estado == 'en_tramite' %}
+                                <span class="badge bg-warning">En Trámite</span>
+                            {% elif caso.estado == 'resuelto' %}
+                                <span class="badge bg-success">Resuelto</span>
+                            {% elif caso.estado == 'cerrado' %}
+                                <span class="badge bg-dark">Cerrado</span>
+                            {% elif caso.estado == 'archivado' %}
+                                <span class="badge bg-secondary">Archivado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if caso.estado == 'en_tramite' %}
+                                {% with progreso=caso.calcular_progreso estado_urgente=caso.obtener_estado_urgente %}
+                                <div class="progress" style="width: 120px;">
+                                    <div class="progress-bar 
+                                        {% if estado_urgente == 'urgente' %}progress-bar-urgente
+                                        {% elif estado_urgente == 'vencido' %}progress-bar-vencido
+                                        {% endif %}" 
+                                        role="progressbar" 
+                                        style="width: {{ progreso }}%"
+                                        data-caso-id="{{ caso.id }}"
+                                        data-progreso="{{ progreso }}"
+                                        data-estado-urgente="{{ estado_urgente }}">
+                                        {{ progreso|floatformat:0 }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    {% if estado_urgente == 'urgente' %}
+                                        <i class="bi bi-exclamation-triangle text-warning"></i> Urgente
+                                    {% elif estado_urgente == 'vencido' %}
+                                        <i class="bi bi-x-circle text-danger"></i> Vencido
+                                    {% else %}
+                                        <i class="bi bi-check-circle text-success"></i> En tiempo
+                                    {% endif %}
+                                </small>
+                                {% endwith %}
+                            {% else %}
+                                <span class="text-success">
+                                    <i class="bi bi-check-circle"></i> Completado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ caso.fecha_registro|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'casos:detalle_caso' caso.id %}" 
+                                   class="btn btn-outline-primary" 
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if caso.estado == 'en_tramite' and caso.juez_asignado == user %}
+                                <a href="{% url 'casos:editar_caso' caso.id %}" 
+                                   class="btn btn-outline-secondary" 
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.es_admin %}
+                                <a href="{% url 'casos:eliminar_caso' caso.id %}" 
+                                   class="btn btn-outline-danger" 
+                                   title="Eliminar"
+                                   onclick="return confirmarAccion('¿Está seguro de eliminar este caso?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginación de casos">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if estado %}&estado={{ estado }}{% endif %}{% if tipo_conflicto %}&tipo_conflicto={{ tipo_conflicto }}{% endif %}{% if bloque %}&bloque={{ bloque }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if estado %}&estado={{ estado }}{% endif %}{% if tipo_conflicto %}&tipo_conflicto={{ tipo_conflicto }}{% endif %}{% if bloque %}&bloque={{ bloque }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if estado %}&estado={{ estado }}{% endif %}{% if tipo_conflicto %}&tipo_conflicto={{ tipo_conflicto }}{% endif %}{% if bloque %}&bloque={{ bloque }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if estado %}&estado={{ estado }}{% endif %}{% if tipo_conflicto %}&tipo_conflicto={{ tipo_conflicto }}{% endif %}{% if bloque %}&bloque={{ bloque }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if estado %}&estado={{ estado }}{% endif %}{% if tipo_conflicto %}&tipo_conflicto={{ tipo_conflicto }}{% endif %}{% if bloque %}&bloque={{ bloque }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+            <h5 class="text-muted mt-3">No se encontraron casos</h5>
+            <p class="text-muted">
+                {% if estado or tipo_conflicto or bloque or busqueda %}
+                    No hay casos que coincidan con los filtros aplicados.
+                {% else %}
+                    {% if user.es_juez %}
+                        No tienes casos asignados aún.
+                    {% else %}
+                        No hay casos registrados en el sistema.
+                    {% endif %}
+                {% endif %}
+            </p>
+            {% if user.es_juez %}
+            <a href="{% url 'casos:crear_caso' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Crear Primer Caso
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

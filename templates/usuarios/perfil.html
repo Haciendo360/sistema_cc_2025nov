@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user"></i> Información Personal
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if perfil.avatar %}
+                            <img src="{{ perfil.avatar.url }}" alt="Avatar" class="img-circle" width="100" height="100">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user-circle fa-5x text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Usuario:</strong></td>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nombre:</strong></td>
+                            <td>{{ user.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cédula:</strong></td>
+                            <td>{{ user.cedula }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Teléfono:</strong></td>
+                            <td>{{ user.telefono }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dirección:</strong></td>
+                            <td>{{ user.direccion }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rol:</strong></td>
+                            <td>
+                                {% if user.rol == 'admin' %}
+                                    <span class="badge badge-danger">Administrador</span>
+                                {% else %}
+                                    <span class="badge badge-info">Juez de Paz</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estado:</strong></td>
+                            <td>
+                                {% if user.estado_aprobacion == 'aprobado' %}
+                                    <span class="badge badge-success">Aprobado</span>
+                                {% elif user.estado_aprobacion == 'rechazado' %}
+                                    <span class="badge badge-danger">Rechazado</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pendiente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'usuarios:editar_perfil' %}" class="btn btn-primary btn-block">
+                            <i class="fas fa-edit"></i> Editar Perfil
+                        </a>
+                        <a href="{% url 'usuarios:cambiar_password' %}" class="btn btn-secondary btn-block">
+                            <i class="fas fa-key"></i> Cambiar Contraseña
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-info-circle"></i> Información Adicional
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if perfil.biografia %}
+                        <h5>Biografía</h5>
+                        <p>{{ perfil.biografia }}</p>
+                    {% endif %}
+                    
+                    <h5>Fechas Importantes</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Fecha de Registro:</strong></td>
+                            <td>{{ user.fecha_registro|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Último Acceso:</strong></td>
+                            <td>
+                                {% if user.last_login %}
+                                    {{ user.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if user.fecha_aprobacion %}
+                        <tr>
+                            <td><strong>Fecha de Aprobación:</strong></td>
+                            <td>{{ user.fecha_aprobacion|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if user.aprobado_por %}
+                        <tr>
+                            <td><strong>Aprobado por:</strong></td>
+                            <td>{{ user.aprobado_por.get_full_name }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                    
+                    {% if user.observaciones_aprobacion %}
+                        <h5>Observaciones de Aprobación</h5>
+                        <div class="alert alert-info">
+                            {{ user.observaciones_aprobacion }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Archivo - {{ adjunto.nombre_archivo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-trash text-danger"></i> Eliminar Archivo
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Información del Archivo -->
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> ¿Está seguro?</h5>
+                        <p>Esta acción no se puede deshacer. El archivo será eliminado permanentemente del sistema.</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información del Archivo</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ adjunto.nombre_archivo }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo:</strong></td>
+                                    <td>{{ adjunto.get_tipo_archivo_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tamaño:</strong></td>
+                                    <td>{{ adjunto.obtener_tamaño_formateado }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Subido por:</strong></td>
+                                    <td>{{ adjunto.subido_por.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha:</strong></td>
+                                    <td>{{ adjunto.fecha_subida|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Información del Caso</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Número:</strong></td>
+                                    <td>{{ adjunto.caso.numero_caso }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Solicitante:</strong></td>
+                                    <td>{{ adjunto.caso.nombre_solicitante }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge badge-info">{{ adjunto.caso.get_estado_display }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if adjunto.descripcion %}
+                        <div class="mb-3">
+                            <h6>Descripción del Archivo:</h6>
+                            <p class="text-muted">{{ adjunto.descripcion }}</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Formulario de Confirmación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-actions">
+                            <a href="{% url 'casos:gestion_adjuntos' adjunto.caso.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar Archivo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

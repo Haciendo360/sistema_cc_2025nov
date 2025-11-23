@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes del Sistema{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        @page {
+            size: letter;
+            margin: 0.5in;
+        }
+
+        body {
+            background-color: white !important;
+            font-size: 12pt;
+        }
+
+        /* Hide non-printable elements */
+        .navbar,
+        .sidebar,
+        .footer,
+        .btn,
+        .card-header .card-tools,
+        .no-print {
+            display: none !important;
+        }
+
+        /* Layout adjustments */
+        .container-fluid,
+        .row,
+        .col-12,
+        .col-md-6,
+        .col-md-3 {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            flex: none !important;
+            max-width: none !important;
+        }
+
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Card styling for print */
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+            margin-bottom: 20px !important;
+            page-break-inside: avoid;
+        }
+
+        .card-header {
+            background-color: white !important;
+            border-bottom: 2px solid #333 !important;
+            padding: 10px 0 !important;
+        }
+
+        .card-title {
+            font-size: 16pt !important;
+            font-weight: bold !important;
+            color: black !important;
+        }
+
+        /* Grid for charts */
+        .row {
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+
+        .col-md-6 {
+            width: 50% !important;
+            float: left !important;
+            padding: 10px !important;
+        }
+
+        .col-md-3 {
+            width: 25% !important;
+            float: left !important;
+        }
+
+        /* Info boxes */
+        .info-box {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* Charts */
+        canvas {
+            max-width: 100% !important;
+            max-height: 300px !important;
+        }
+
+        /* Header for print */
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+        }
+
+        .print-header h1 {
+            font-size: 24pt;
+            margin: 0;
+        }
+
+        .print-header p {
+            font-size: 12pt;
+            margin: 5px 0 0 0;
+            color: #666;
+        }
+    }
+
+    .print-header {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Print Header (only visible when printing) -->
+<div class="print-header">
+    <h1>Sistema de Gestión de Casos Comunitarios</h1>
+    <p>Reporte de Estadísticas - Jueces de Paz</p>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar"></i> Reportes del Sistema
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Métricas Generales -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info">
+                                    <i class="fas fa-folder"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total de Casos</span>
+                                    <span class="info-box-number" id="total-casos">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">En Trámite</span>
+                                    <span class="info-box-number" id="casos-tramite">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Resueltos</span>
+                                    <span class="info-box-number" id="casos-resueltos">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-danger">
+                                    <i class="fas fa-times-circle"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">No Resueltos</span>
+                                    <span class="info-box-number" id="casos-no-resueltos">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Casos por Estado</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartEstados" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Casos por Tipo de Conflicto</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartTipos" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Casos por Bloque Residencial</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartBloques" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Actividad Mensual</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartActividad" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Exportación -->
+                    <div class="row mt-4 no-print">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Exportar Datos</h3>
+                                </div>
+                                <div class="card-body">
+                                    <a href="{% url 'casos:exportar_csv' %}" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Exportar CSV
+                                    </a>
+                                    <button class="btn btn-primary" onclick="window.print()">
+                                        <i class="fas fa-print"></i> Imprimir Reporte
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Cargar estadísticas generales
+    fetch('{% url "casos:api_estadisticas_casos" %}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-casos').textContent = data.total_casos;
+            document.getElementById('casos-tramite').textContent = data.casos_en_tramite;
+            document.getElementById('casos-resueltos').textContent = data.casos_resueltos;
+            document.getElementById('casos-no-resueltos').textContent = data.casos_no_resueltos;
+        });
+
+    // Gráfico de casos por estado
+    fetch('{% url "casos:api_casos_por_estado" %}')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('chartEstados').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Casos',
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 205, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 205, 86, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+
+    // Gráfico de casos por tipo
+    fetch('{% url "casos:api_casos_por_tipo" %}')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('chartTipos').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 205, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        });
+
+    // Gráfico de casos por bloque
+    fetch('{% url "casos:api_casos_por_bloque" %}')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('chartBloques').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Casos',
+                        data: data.data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+
+    // Gráfico de actividad mensual
+    fetch('{% url "casos:api_actividad_mensual" %}')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('chartActividad').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Casos Registrados',
+                        data: data.data,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

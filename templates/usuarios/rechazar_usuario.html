@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Rechazar Usuario{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-times-circle text-danger"></i> Rechazar Usuario
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Información del usuario -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información del Usuario</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Usuario:</strong></td>
+                                    <td>{{ usuario.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ usuario.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ usuario.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cédula:</strong></td>
+                                    <td>{{ usuario.cedula }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Rol:</strong></td>
+                                    <td>
+                                        {% if usuario.rol == 'admin' %}
+                                            <span class="badge badge-danger">Administrador</span>
+                                        {% else %}
+                                            <span class="badge badge-info">Juez de Paz</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha Registro:</strong></td>
+                                    <td>{{ usuario.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Estado Actual</h5>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock"></i> 
+                                <strong>Estado:</strong> Pendiente de Aprobación
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de rechazo -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="observaciones">Motivo del Rechazo:</label>
+                            <textarea name="observaciones" id="observaciones" class="form-control" rows="4" 
+                                      placeholder="Explique el motivo del rechazo del usuario..." required></textarea>
+                            <small class="form-text text-muted">
+                                Este campo es obligatorio para rechazar un usuario.
+                            </small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times"></i> Rechazar Usuario
+                            </button>
+                            <a href="{% url 'usuarios:gestion_usuarios' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+# Configuración de entorno para el Sistema de Gestión de Casos Comunitarios
+# Variables de configuración para desarrollo y producción
+
+# Configuración de base de datos
+DEBUG=True
+SECRET_KEY=tu-clave-secreta-super-segura-aqui-cambiar-en-produccion
+DATABASE_URL=sqlite:///db.sqlite3
+
+# Configuración de email (para recuperación de contraseñas)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=tu-email@gmail.com
+EMAIL_HOST_PASSWORD=tu-password-de-aplicacion
+
+# Configuración de archivos
+MEDIA_ROOT=media/
+MEDIA_URL=/media/
+STATIC_ROOT=staticfiles/
+STATIC_URL=/static/
+
+# Configuración de seguridad
+ALLOWED_HOSTS=localhost,127.0.0.1,tu-app.onrender.com
+CSRF_TRUSTED_ORIGINS=https://tu-app.onrender.com
+
+# Configuración de archivos adjuntos
+MAX_FILE_SIZE=10485760  # 10MB en bytes
+ALLOWED_FILE_TYPES=pdf,doc,docx,jpg,jpeg,png
+
+# Configuración de plazos legales
+PLAZO_ESTANDAR_DIAS=15
+PLAZO_PRORROGA_DIAS=15
+DIAS_ALERTA_URGENTE=10
