@@ -199,6 +199,9 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -207,12 +210,12 @@ LOGGING = {
     },
     'loggers': {
         'casos': {
-            'handlers': ['file'],
+            'handlers': ['console'] if not DEBUG else ['file'],
             'level': 'INFO',
             'propagate': True,
         },
         'usuarios': {
-            'handlers': ['file'],
+            'handlers': ['console'] if not DEBUG else ['file'],
             'level': 'INFO',
             'propagate': True,
         },
