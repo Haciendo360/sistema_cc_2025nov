@@ -8,27 +8,20 @@ django-cors-headers==4.3.1
 
 # Autenticación y seguridad
 djangorestframework-simplejwt==5.3.0
-django-allauth==0.57.0
 
 # Manejo de archivos e imágenes
 Pillow==10.1.0
 
 # Base de datos
-psycopg2-binary==2.9.9  # Para PostgreSQL en producción
+psycopg2-binary==2.9.9
 django-environ==0.11.2
 
 # Utilidades
 python-decouple==3.8
-django-extensions==3.2.3
-
-# Para desarrollo y testing
-django-debug-toolbar==4.2.0
-pytest==7.4.3
-pytest-django==4.7.0
 
 # Para despliegue en Render
 gunicorn==21.2.0
 whitenoise==6.6.0
 
-# Para generar reportes CSV
-django-import-export==3.3.1
+# Herramientas de desarrollo (opcionales)
+django-extensions==3.2.3
