@@ -32,9 +32,9 @@
                     <label for="estado" class="mr-2">Estado:</label>
                     <select name="estado" id="estado" class="form-control">
                         <option value="">Todos</option>
-                        <option value="pendiente" {% if estado=='pendiente' %}selected{% endif %}>Pendiente</option>
-                        <option value="aprobado" {% if estado=='aprobado' %}selected{% endif %}>Aprobado</option>
-                        <option value="rechazado" {% if estado=='rechazado' %}selected{% endif %}>Rechazado</option>
+                        <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="aprobado" {% if estado == 'aprobado' %}selected{% endif %}>Aprobado</option>
+                        <option value="rechazado" {% if estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
                     </select>
                 </div>
 
@@ -42,8 +42,8 @@
                     <label for="rol" class="mr-2">Rol:</label>
                     <select name="rol" id="rol" class="form-control">
                         <option value="">Todos</option>
-                        <option value="admin" {% if rol=='admin' %}selected{% endif %}>Administrador</option>
-                        <option value="juez" {% if rol=='juez' %}selected{% endif %}>Juez de Paz</option>
+                        <option value="admin" {% if rol == 'admin' %}selected{% endif %}>Administrador</option>
+                        <option value="juez" {% if rol == 'juez' %}selected{% endif %}>Juez de Paz</option>
                     </select>
                 </div>
 
