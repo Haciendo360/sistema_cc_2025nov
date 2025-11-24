@@ -72,7 +72,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],  # Directorio de templates personalizados
-        'APP_DIRS': True,
+        'APP_DIRS': False,  # Deshabilitado para usar loaders personalizados
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -80,6 +80,11 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',  # Para archivos media
+            ],
+            # Deshabilitar caché de templates temporalmente para forzar recarga
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
             ],
         },
     },
