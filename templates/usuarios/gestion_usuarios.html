@@ -4,49 +4,342 @@
 {% block title %}Gestión de Usuarios{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid py-4">
+    <div class="row mb-4">
         <div class="col-12">
-            </select>
+            <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+        </div>
+    </div>
+
+    <!-- Alerta de usuarios pendientes -->
+    {% if usuarios_pendientes > 0 %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>¡Atención!</strong> Hay <strong>{{ usuarios_pendientes }}</strong> usuario(s) pendiente(s) de
+        aprobación.
+        <a href="?estado=pendiente" class="alert-link">Ver usuarios pendientes</a>
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <div class="form-group mr-3">
+                    <label for="estado" class="mr-2">Estado:</label>
+                    <select name="estado" id="estado" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="pendiente" {% if estado=='pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="aprobado" {% if estado=='aprobado' %}selected{% endif %}>Aprobado</option>
+                        <option value="rechazado" {% if estado=='rechazado' %}selected{% endif %}>Rechazado</option>
+                    </select>
+                </div>
+
+                <div class="form-group mr-3">
+                    <label for="rol" class="mr-2">Rol:</label>
+                    <select name="rol" id="rol" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="admin" {% if rol=='admin' %}selected{% endif %}>Administrador</option>
+                        <option value="juez" {% if rol=='juez' %}selected{% endif %}>Juez de Paz</option>
+                    </select>
+                </div>
+
+                <div class="form-group mr-3">
+                    <input type="text" name="busqueda" class="form-control" placeholder="Buscar por nombre, cédula..."
+                        value="{{ busqueda }}">
+                </div>
+
+                <button type="submit" class="btn btn-primary mr-2">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{% url 'usuarios:gestion_usuarios' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Usuarios</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cédula</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Activo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in page_obj %}
+                        <tr>
+                            <td>
+                                <strong>{{ usuario.get_full_name }}</strong><br>
+                                <small class="text-muted">@{{ usuario.username }}</small>
+                            </td>
+                            <td>{{ usuario.cedula }}</td>
+                            <td>{{ usuario.email }}</td>
+                            <td>
+                                {% if usuario.rol == 'admin' %}
+                                <span class="badge badge-danger">Administrador</span>
+                                {% elif usuario.rol == 'juez' %}
+                                <span class="badge badge-primary">Juez de Paz</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.estado_aprobacion == 'pendiente' %}
+                                <span class="badge badge-warning">Pendiente</span>
+                                {% elif usuario.estado_aprobacion == 'aprobado' %}
+                                <span class="badge badge-success">Aprobado</span>
+                                {% elif usuario.estado_aprobacion == 'rechazado' %}
+                                <span class="badge badge-danger">Rechazado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.is_active %}
+                                <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    {% if usuario.estado_aprobacion == 'pendiente' %}
+                                    <a href="{% url 'usuarios:aprobar_usuario' usuario.id %}"
+                                        class="btn btn-sm btn-success" title="Aprobar usuario">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    <a href="{% url 'usuarios:rechazar_usuario' usuario.id %}"
+                                        class="btn btn-sm btn-danger" title="Rechazar usuario">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                    {% endif %}
+
+                                    <button type="button" class="btn btn-sm btn-info"
+                                        onclick="editarUsuario({{ usuario.id }})" title="Editar usuario">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    {% if usuario.id != request.user.id %}
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                        onclick="confirmarEliminar({{ usuario.id }}, '{{ usuario.username }}')"
+                                        title="Eliminar usuario">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No se encontraron usuarios</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{ page_obj.previous_page_number }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link"
+                            href="?page={{ num }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{ page_obj.next_page_number }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
+                            Siguiente
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Usuario</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarUsuario">
+                    {% csrf_token %}
+                    <input type="hidden" id="usuario_id" name="usuario_id">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="username">Usuario:</label>
+                                <input type="text" class="form-control" id="username" name="username" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="first_name">Nombre:</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="last_name">Apellido:</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="cedula">Cédula:</label>
+                                <input type="text" class="form-control" id="cedula" name="cedula">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="telefono">Teléfono:</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="direccion">Dirección:</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="rol">Rol:</label>
+                                <select class="form-control" id="rol" name="rol">
+                                    <option value="juez">Juez de Paz</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="estado_aprobacion">Estado de Aprobación:</label>
+                                <select class="form-control" id="estado_aprobacion" name="estado_aprobacion">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="aprobado">Aprobado</option>
+                                    <option value="rechazado">Rechazado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active">
+                                    <label class="form-check-label" for="is_active">
+                                        Usuario Activo (Puede ingresar a la plataforma)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_staff" name="is_staff">
+                                    <label class="form-check-label" for="is_staff">
+                                        Personal del Sistema
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observaciones_aprobacion">Observaciones:</label>
+                        <textarea class="form-control" id="observaciones_aprobacion" name="observaciones_aprobacion"
+                            rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarUsuario()">Guardar Cambios</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="form-group">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="is_active" name="is_active">
-                <label class="form-check-label" for="is_active">
-                    Usuario Activo (Puede ingresar a la plataforma)
-                </label>
+<!-- Modal Eliminar Usuario -->
+<div class="modal fade" id="modalEliminarUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar al usuario <strong id="eliminar_username"></strong>?</p>
+                <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <form id="formEliminarUsuario" method="post">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="form-group">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="is_staff" name="is_staff">
-                <label class="form-check-label" for="is_staff">
-                    Personal del Sistema
-                </label>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="form-group">
-    <label for="observaciones_aprobacion">Observaciones:</label>
-    <textarea class="form-control" id="observaciones_aprobacion" name="observaciones_aprobacion" rows="3"></textarea>
-</div>
-</form>
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-    <button type="button" class="btn btn-primary" onclick="guardarUsuario()">Guardar Cambios</button>
-</div>
-</div>
-</div>
 </div>
 
 <script>
@@ -102,7 +395,6 @@
                 alert('Error al guardar los cambios');
             });
     }
-
 
     function confirmarEliminar(usuarioId, username) {
         document.getElementById('eliminar_username').textContent = username;
