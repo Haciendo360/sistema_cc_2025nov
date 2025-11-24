@@ -1,3 +1,14 @@
+services:
+  - type: web
+    name: sistema-casos-comunitarios
+    runtime: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn sistema_casos_comunitario.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
