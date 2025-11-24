@@ -26,170 +26,147 @@
 
     <!-- Filtros -->
     <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="form-inline">
-                <div class="form-group mr-3">
-                    <label for="estado" class="mr-2">Estado:</label>
-                    <select name="estado" id="estado" class="form-control">
-                        <option value="">Todos</option>
-                        <option value="pendiente" {% if estado=='pendiente' %}selected{% endif %}>Pendiente</option>
-                        <option value="aprobado" {% if estado=='aprobado' %}selected{% endif %}>Aprobado</option>
-                        <option value="rechazado" {% if estado=='rechazado' %}selected{% endif %}>Rechazado</option>
-                    </select>
-                </div>
-
-                <div class="form-group mr-3">
-                    <label for="rol" class="mr-2">Rol:</label>
-                    <select name="rol" id="rol" class="form-control">
-                        <option value="">Todos</option>
-                        <option value="admin" {% if rol=='admin' %}selected{% endif %}>Administrador</option>
-                        <option value="juez" {% if rol=='juez' %}selected{% endif %}>Juez de Paz</option>
-                    </select>
-                </div>
-
-                <div class="form-group mr-3">
-                    <input type="text" name="busqueda" class="form-control" placeholder="Buscar por nombre, cédula..."
-                        value="{{ busqueda }}">
-                </div>
-
-                <button type="submit" class="btn btn-primary mr-2">
-                    <i class="fas fa-search"></i> Filtrar
-                </button>
-                <a href="{% url 'usuarios:gestion_usuarios' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Limpiar
-                </a>
-            </form>
-        </div>
+        value="{{ busqueda }}">
     </div>
 
-    <!-- Tabla de usuarios -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Lista de Usuarios</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Cédula</th>
-                            <th>Email</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                            <th>Activo</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for usuario in page_obj %}
-                        <tr>
-                            <td>
-                                <strong>{{ usuario.get_full_name }}</strong><br>
-                                <small class="text-muted">@{{ usuario.username }}</small>
-                            </td>
-                            <td>{{ usuario.cedula }}</td>
-                            <td>{{ usuario.email }}</td>
-                            <td>
-                                {% if usuario.rol == 'admin' %}
-                                <span class="badge badge-danger">Administrador</span>
-                                {% elif usuario.rol == 'juez' %}
-                                <span class="badge badge-primary">Juez de Paz</span>
-                                {% endif %}
-                            </td>
-                            <td>
+    <button type="submit" class="btn btn-primary mr-2">
+        <i class="fas fa-search"></i> Filtrar
+    </button>
+    <a href="{% url 'usuarios:gestion_usuarios' %}" class="btn btn-secondary">
+        <i class="fas fa-times"></i> Limpiar
+    </a>
+    </form>
+</div>
+</div>
+
+<!-- Tabla de usuarios -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Lista de Usuarios</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Cédula</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in page_obj %}
+                    <tr>
+                        <td>
+                            <strong>{{ usuario.get_full_name }}</strong><br>
+                            <small class="text-muted">@{{ usuario.username }}</small>
+                        </td>
+                        <td>{{ usuario.cedula }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>
+                            {% if usuario.rol == 'admin' %}
+                            <span class="badge badge-danger">Administrador</span>
+                            {% elif usuario.rol == 'juez' %}
+                            <span class="badge badge-primary">Juez de Paz</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.estado_aprobacion == 'pendiente' %}
+                            <span class="badge badge-warning">Pendiente</span>
+                            {% elif usuario.estado_aprobacion == 'aprobado' %}
+                            <span class="badge badge-success">Aprobado</span>
+                            {% elif usuario.estado_aprobacion == 'rechazado' %}
+                            <span class="badge badge-danger">Rechazado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.is_active %}
+                            <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                            <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
                                 {% if usuario.estado_aprobacion == 'pendiente' %}
-                                <span class="badge badge-warning">Pendiente</span>
-                                {% elif usuario.estado_aprobacion == 'aprobado' %}
-                                <span class="badge badge-success">Aprobado</span>
-                                {% elif usuario.estado_aprobacion == 'rechazado' %}
-                                <span class="badge badge-danger">Rechazado</span>
+                                <a href="{% url 'usuarios:aprobar_usuario' usuario.id %}" class="btn btn-sm btn-success"
+                                    title="Aprobar usuario">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                <a href="{% url 'usuarios:rechazar_usuario' usuario.id %}" class="btn btn-sm btn-danger"
+                                    title="Rechazar usuario">
+                                    <i class="fas fa-times"></i>
+                                </a>
                                 {% endif %}
-                            </td>
-                            <td>
-                                {% if usuario.is_active %}
-                                <i class="fas fa-check-circle text-success"></i>
-                                {% else %}
-                                <i class="fas fa-times-circle text-danger"></i>
+
+                                <button type="button" class="btn btn-sm btn-info"
+                                    onclick="editarUsuario({{ usuario.id }})" title="Editar usuario">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                {% if usuario.id != request.user.id %}
+                                <button type="button" class="btn btn-sm btn-danger"
+                                    onclick="confirmarEliminar({{ usuario.id }}, '{{ usuario.username }}')"
+                                    title="Eliminar usuario">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                                 {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    {% if usuario.estado_aprobacion == 'pendiente' %}
-                                    <a href="{% url 'usuarios:aprobar_usuario' usuario.id %}"
-                                        class="btn btn-sm btn-success" title="Aprobar usuario">
-                                        <i class="fas fa-check"></i>
-                                    </a>
-                                    <a href="{% url 'usuarios:rechazar_usuario' usuario.id %}"
-                                        class="btn btn-sm btn-danger" title="Rechazar usuario">
-                                        <i class="fas fa-times"></i>
-                                    </a>
-                                    {% endif %}
-
-                                    <button type="button" class="btn btn-sm btn-info"
-                                        onclick="editarUsuario({{ usuario.id }})" title="Editar usuario">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-
-                                    {% if usuario.id != request.user.id %}
-                                    <button type="button" class="btn btn-sm btn-danger"
-                                        onclick="confirmarEliminar({{ usuario.id }}, '{{ usuario.username }}')"
-                                        title="Eliminar usuario">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">No se encontraron usuarios</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Paginación -->
-        {% if page_obj.has_other_pages %}
-        <div class="card-footer">
-            <nav>
-                <ul class="pagination justify-content-center mb-0">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link"
-                            href="?page={{ page_obj.previous_page_number }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
-                            Anterior
-                        </a>
-                    </li>
-                    {% endif %}
-
-                    {% for num in page_obj.paginator.page_range %}
-                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                        <a class="page-link"
-                            href="?page={{ num }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
-                            {{ num }}
-                        </a>
-                    </li>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No se encontraron usuarios</p>
+                        </td>
+                    </tr>
                     {% endfor %}
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link"
-                            href="?page={{ page_obj.next_page_number }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
-                            Siguiente
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+                </tbody>
+            </table>
         </div>
-        {% endif %}
     </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
+                        Anterior
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link"
+                        href="?page={{ num }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}&estado={{ estado }}&rol={{ rol }}&busqueda={{ busqueda }}">
+                        Siguiente
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
 </div>
 
 <!-- Modal Editar Usuario -->
